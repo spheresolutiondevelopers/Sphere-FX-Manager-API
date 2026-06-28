@@ -1,0 +1,835 @@
+{
+  "XAUUSD": {
+    "decimal_places": [1, 2],
+    "min_value": 1000.0,
+    "max_value": 5000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "XAGUSD": {
+    "decimal_places": [2, 3],
+    "min_value": 10.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "EURUSD": {
+    "decimal_places": [4, 5],
+    "min_value": 0.5,
+    "max_value": 2.5,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "GBPUSD": {
+    "decimal_places": [4, 5],
+    "min_value": 0.8,
+    "max_value": 2.2,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "USDJPY": {
+    "decimal_places": [2, 3],
+    "min_value": 80.0,
+    "max_value": 200.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "USDCHF": {
+    "decimal_places": [4, 5],
+    "min_value": 0.5,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "AUDUSD": {
+    "decimal_places": [4, 5],
+    "min_value": 0.4,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "NZDUSD": {
+    "decimal_places": [4, 5],
+    "min_value": 0.4,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "USDCAD": {
+    "decimal_places": [4, 5],
+    "min_value": 0.8,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "EURGBP": {
+    "decimal_places": [4, 5],
+    "min_value": 0.5,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "EURJPY": {
+    "decimal_places": [2, 3],
+    "min_value": 80.0,
+    "max_value": 200.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "GBPJPY": {
+    "decimal_places": [2, 3],
+    "min_value": 100.0,
+    "max_value": 300.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "AUDJPY": {
+    "decimal_places": [2, 3],
+    "min_value": 50.0,
+    "max_value": 150.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "NZDJPY": {
+    "decimal_places": [2, 3],
+    "min_value": 50.0,
+    "max_value": 150.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "CHFJPY": {
+    "decimal_places": [2, 3],
+    "min_value": 80.0,
+    "max_value": 200.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "EURAUD": {
+    "decimal_places": [4, 5],
+    "min_value": 0.8,
+    "max_value": 2.5,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "EURCAD": {
+    "decimal_places": [4, 5],
+    "min_value": 0.8,
+    "max_value": 2.5,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "GBPAUD": {
+    "decimal_places": [4, 5],
+    "min_value": 1.0,
+    "max_value": 3.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "GBPCAD": {
+    "decimal_places": [4, 5],
+    "min_value": 1.0,
+    "max_value": 3.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "AUDCAD": {
+    "decimal_places": [4, 5],
+    "min_value": 0.5,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "AUDCHF": {
+    "decimal_places": [4, 5],
+    "min_value": 0.4,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "CADCHF": {
+    "decimal_places": [4, 5],
+    "min_value": 0.4,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "GBPCHF": {
+    "decimal_places": [4, 5],
+    "min_value": 0.8,
+    "max_value": 2.5,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "USDMXN": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 30.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "USDTRY": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 40.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "USDZAR": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 25.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "USDSGD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.8,
+    "max_value": 2.5,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "USDHKD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 7.0,
+    "max_value": 9.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "USDCNY": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 5.0,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "USDINR": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 60.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "USDRUB": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 50.0,
+    "max_value": 150.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "USDNOK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 5.0,
+    "max_value": 15.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "USDSEK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 5.0,
+    "max_value": 15.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "USDDKK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 5.0,
+    "max_value": 12.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "EURCHF": {
+    "decimal_places": [4, 5],
+    "min_value": 0.5,
+    "max_value": 2.5,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  },
+  "EURSEK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 8.0,
+    "max_value": 15.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "EURNOK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 8.0,
+    "max_value": 15.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "EURDKK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 7.0,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "GBPNOK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 20.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "GBPSEK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 20.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "NOKSEK": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.8,
+    "max_value": 2.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "BTCUSD": {
+    "decimal_places": [0, 1, 2],
+    "min_value": 10000.0,
+    "max_value": 200000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ETHUSD": {
+    "decimal_places": [0, 1, 2],
+    "min_value": 500.0,
+    "max_value": 8000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "LTCUSD": {
+    "decimal_places": [0, 1, 2],
+    "min_value": 10.0,
+    "max_value": 1000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "XRPUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "BCHUSD": {
+    "decimal_places": [0, 1, 2],
+    "min_value": 50.0,
+    "max_value": 2000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "BNBUSD": {
+    "decimal_places": [0, 1, 2],
+    "min_value": 50.0,
+    "max_value": 1000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ADAUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 5.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "DOTUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 1.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SOLUSD": {
+    "decimal_places": [0, 1, 2],
+    "min_value": 10.0,
+    "max_value": 500.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "AVAXUSD": {
+    "decimal_places": [0, 1, 2],
+    "min_value": 5.0,
+    "max_value": 200.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "MATICUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 5.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "LINKUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 1.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "UNIUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 1.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ATOMUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 1.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "FTMUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 5.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "NEARUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ARBUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "APTUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "OPUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "DOGEUSD": {
+    "decimal_places": [4, 5, 6],
+    "min_value": 0.01,
+    "max_value": 1.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SHIBUSD": {
+    "decimal_places": [6, 7, 8],
+    "min_value": 0.000001,
+    "max_value": 0.01,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "PEPEUSD": {
+    "decimal_places": [6, 7, 8],
+    "min_value": 0.000001,
+    "max_value": 0.01,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "WLDUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SUIUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SEIUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "INJUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 1.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "RUNUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "STXUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "FILUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 1.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "AAVEUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 500.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "MKRUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 100.0,
+    "max_value": 5000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "COMPUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 500.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "CRVUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SNXUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ZECUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 500.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "XLMUSD": {
+    "decimal_places": [4, 5, 6],
+    "min_value": 0.01,
+    "max_value": 1.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ALGOUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 5.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "VETUSD": {
+    "decimal_places": [4, 5, 6],
+    "min_value": 0.001,
+    "max_value": 0.5,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ICPUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 1.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ETCUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 5.0,
+    "max_value": 200.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "XMRUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 50.0,
+    "max_value": 500.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "DASHUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 10.0,
+    "max_value": 500.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ZILUSD": {
+    "decimal_places": [4, 5, 6],
+    "min_value": 0.001,
+    "max_value": 0.5,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "QTUMUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "ONTUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "NEOUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 1.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "WAVESUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.5,
+    "max_value": 50.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "EOSUSD": {
+    "decimal_places": [2, 3, 4],
+    "min_value": 0.1,
+    "max_value": 10.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "TRXUSD": {
+    "decimal_places": [4, 5, 6],
+    "min_value": 0.01,
+    "max_value": 1.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "NAS100": {
+    "decimal_places": [1, 2],
+    "min_value": 5000.0,
+    "max_value": 30000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "US30": {
+    "decimal_places": [1, 2],
+    "min_value": 10000.0,
+    "max_value": 50000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "US500": {
+    "decimal_places": [1, 2],
+    "min_value": 1000.0,
+    "max_value": 10000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SPX500": {
+    "decimal_places": [1, 2],
+    "min_value": 1000.0,
+    "max_value": 10000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "UK100": {
+    "decimal_places": [1, 2],
+    "min_value": 3000.0,
+    "max_value": 10000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "GER40": {
+    "decimal_places": [1, 2],
+    "min_value": 5000.0,
+    "max_value": 20000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "FRA40": {
+    "decimal_places": [1, 2],
+    "min_value": 3000.0,
+    "max_value": 10000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "JPN225": {
+    "decimal_places": [1, 2],
+    "min_value": 10000.0,
+    "max_value": 50000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "AUS200": {
+    "decimal_places": [1, 2],
+    "min_value": 3000.0,
+    "max_value": 10000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "HK50": {
+    "decimal_places": [1, 2],
+    "min_value": 10000.0,
+    "max_value": 40000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "CHINA50": {
+    "decimal_places": [1, 2],
+    "min_value": 5000.0,
+    "max_value": 20000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "TWIX": {
+    "decimal_places": [1, 2],
+    "min_value": 5000.0,
+    "max_value": 20000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "STOXX50E": {
+    "decimal_places": [1, 2],
+    "min_value": 2000.0,
+    "max_value": 8000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "IT40": {
+    "decimal_places": [1, 2],
+    "min_value": 10000.0,
+    "max_value": 40000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SPAIN35": {
+    "decimal_places": [1, 2],
+    "min_value": 5000.0,
+    "max_value": 15000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SWISS20": {
+    "decimal_places": [1, 2],
+    "min_value": 5000.0,
+    "max_value": 15000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "NZ50": {
+    "decimal_places": [1, 2],
+    "min_value": 5000.0,
+    "max_value": 15000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SG20": {
+    "decimal_places": [1, 2],
+    "min_value": 2000.0,
+    "max_value": 5000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "INDIA50": {
+    "decimal_places": [1, 2],
+    "min_value": 10000.0,
+    "max_value": 30000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "BRAZIL50": {
+    "decimal_places": [1, 2],
+    "min_value": 50000.0,
+    "max_value": 150000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "MEXICO35": {
+    "decimal_places": [1, 2],
+    "min_value": 30000.0,
+    "max_value": 80000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "RUSSIA50": {
+    "decimal_places": [1, 2],
+    "min_value": 1000.0,
+    "max_value": 5000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "NIFTY50": {
+    "decimal_places": [1, 2],
+    "min_value": 10000.0,
+    "max_value": 30000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "SENSEX": {
+    "decimal_places": [1, 2],
+    "min_value": 30000.0,
+    "max_value": 80000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "KOSPI200": {
+    "decimal_places": [1, 2],
+    "min_value": 200.0,
+    "max_value": 500.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "TAIEX": {
+    "decimal_places": [1, 2],
+    "min_value": 10000.0,
+    "max_value": 30000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "HSI": {
+    "decimal_places": [1, 2],
+    "min_value": 15000.0,
+    "max_value": 40000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "DJIA": {
+    "decimal_places": [1, 2],
+    "min_value": 20000.0,
+    "max_value": 50000.0,
+    "decimal_separator": ".",
+    "thousands_separator": ","
+  },
+  "VIX": {
+    "decimal_places": [1, 2],
+    "min_value": 5.0,
+    "max_value": 100.0,
+    "decimal_separator": ".",
+    "thousands_separator": ""
+  }
+}

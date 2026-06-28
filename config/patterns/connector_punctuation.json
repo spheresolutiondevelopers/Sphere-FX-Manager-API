@@ -1,0 +1,23 @@
+{
+  "comment": "Additional connector punctuation that may appear between keyword and value, beyond the per-file connector lists. These are applied globally during cleaning.",
+  "allowed_connectors": [
+    ":",
+    ";",
+    "#",
+    "=",
+    "-",
+    "–",
+    "—",
+    "~",
+    "|",
+    "/",
+    "\\",
+    ".",
+    ",",
+    " ",
+    "\t",
+    "\n",
+    "\r"
+  ],
+  "preserve_pattern": "[\\w\\d\\s.:;\\-#=~|/]"
+}

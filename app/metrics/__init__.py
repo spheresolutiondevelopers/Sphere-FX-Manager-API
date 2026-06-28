@@ -1,0 +1,41 @@
+"""Prometheus metrics instrumentation."""
+
+from .prometheus import (
+    init_metrics,
+    get_metrics,
+    http_requests_total,
+    http_request_duration_seconds,
+    signal_extraction_total,
+    signal_extraction_duration_seconds,
+    job_queue_depth,
+    job_processing_duration_seconds,
+    job_status_total,
+    mt5_order_total,
+    mt5_order_duration_seconds,
+    license_check_total,
+    websocket_connections_current,
+    grpc_requests_total,
+    grpc_request_duration_seconds,
+    db_connection_pool_size,
+    db_query_duration_seconds,
+)
+
+__all__ = [
+    "init_metrics",
+    "get_metrics",
+    "http_requests_total",
+    "http_request_duration_seconds",
+    "signal_extraction_total",
+    "signal_extraction_duration_seconds",
+    "job_queue_depth",
+    "job_processing_duration_seconds",
+    "job_status_total",
+    "mt5_order_total",
+    "mt5_order_duration_seconds",
+    "license_check_total",
+    "websocket_connections_current",
+    "grpc_requests_total",
+    "grpc_request_duration_seconds",
+    "db_connection_pool_size",
+    "db_query_duration_seconds",
+]

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package live;
+
+service LiveService {
+    rpc ExecuteOrder(ExecuteOrderRequest) returns (OrderResult);
+}
+
+message ExecuteOrderRequest {
+    string symbol = 1;
+    string action = 2;
+    string order_type = 3;
+    double lot_size = 4;
+    double entry_price = 5;
+    double stop_loss = 6;
+    repeated TakeProfitLevel take_profit = 7;
+    int32 account_id = 8;
+}
+
+message TakeProfitLevel {
+    int32 level = 1;
+    double price = 2;
+}
+
+message OrderResult {
+    bool success = 1;
+    int64 ticket = 2;
+    double fill_price = 3;
+    double slippage_bps = 4;
+    string error_message = 5;
+}

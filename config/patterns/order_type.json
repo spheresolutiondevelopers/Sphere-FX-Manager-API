@@ -1,0 +1,7 @@
+{
+  "component": "order_type",
+  "main_term": "limit",
+  "aliases": ["market", "stop", "stop limit", "stop-loss", "take-profit", "entry", "pending"],
+  "connectors": [" "],
+  "value_type": "enum"
+}

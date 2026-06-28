@@ -1,0 +1,12 @@
+{
+  "component": "stop_loss",
+  "main_term": "stop loss",
+  "aliases": ["sl", "stoploss", "stop out", "s/l", "stop", "loss", "risk", "cut loss", "stop-loss", "sl.", "s.l.", "sloss", "stop_loss"],
+  "connectors": [":", ";", "#", "=", "-", ":-", "", " "],
+  "value_type": "decimal",
+  "post_extraction": {
+    "remove_spaces_inside_number": true,
+    "replace_commas_with_dots": false,
+    "validate_against_symbol": true
+  }
+}

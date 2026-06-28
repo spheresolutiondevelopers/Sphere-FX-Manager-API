@@ -1,0 +1,8 @@
+{
+  "component": "action",
+  "main_term": "buy",
+  "aliases": ["long", "comprar", "kaufen", "buying", "bid", "bull", "compr", "köp", "buy now", "enter long", "go long", "buy stop", "buy limit"],
+  "connectors": [" "],
+  "value_type": "enum",
+  "symbol_mapping": {}
+}

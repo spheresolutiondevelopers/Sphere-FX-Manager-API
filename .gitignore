@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+env/
+.venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Go
+go_workers/*/go.sum  # we keep go.sum at root
+go_workers/*/vendor/
+bin/
+*.test
+*.exe
+
+# Protobuf generated stubs (keep them out of Git to avoid conflicts)
+app/gen_proto/
+go_workers/pb/
+
+# Telegram sessions
+telegram_sessions/
+*.session
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env.local
+.env.*.local
+
+# Database
+*.mdf
+*.ldf

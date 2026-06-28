@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package extractor;
+
+service ExtractorService {
+    rpc Extract(ExtractRequest) returns (ExtractResponse);
+}
+
+message ExtractRequest {
+    string raw_text = 1;
+}
+
+message ExtractResponse {
+    ParsedSignal parsed_signal = 1;
+    bool success = 2;
+    string error_message = 3;
+}
+
+message ParsedSignal {
+    string symbol = 1;
+    string action = 2;          // BUY, SELL
+    string order_type = 3;      // MARKET, LIMIT, STOP, STOP_LIMIT
+    double entry_price = 4;
+    double stop_loss = 5;
+    repeated TakeProfitLevel take_profit = 6;
+    int32 confidence = 7;       // 0-100
+    string raw_text = 8;
+}
+
+message TakeProfitLevel {
+    int32 level = 1;
+    double price = 2;
+}

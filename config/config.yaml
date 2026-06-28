@@ -1,0 +1,49 @@
+# Shared configuration for Python (Pydantic) and Go (Viper)
+
+risk_limits:
+  max_lot: 100.0
+  min_lot: 0.01
+  max_daily_drawdown_percent: 5.0
+  min_rr_ratio: 1.5
+  max_positions: 10
+
+backtester:
+  default_rr: 2.0
+  default_spread_pips: 1.5
+  default_commission: 3.5
+  min_data_points: 100
+
+queue:
+  poll_interval_seconds: 2
+  max_claim_attempts: 3
+
+pool:
+  async_pool_size: 20
+  async_max_overflow: 10
+  sync_pool_size: 5
+
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+extractor:
+  grpc_port: 50051
+  patterns_dir: /app/config/patterns
+  log_level: info
+
+live_worker:
+  poll_interval_seconds: 2
+  max_claim_attempts: 3
+  mt5_bridge_url: http://windows-vps:8081
+  mt5_timeout_seconds: 10
+  max_open_conns: 10
+  max_idle_conns: 5
+  conn_max_lifetime_minutes: 30
+  log_level: info  
+
+risk_limits:
+  max_lot: 100.0
+  min_lot: 0.01
+  max_daily_drawdown_percent: 5.0
+  min_rr_ratio: 1.5
+  max_positions: 10

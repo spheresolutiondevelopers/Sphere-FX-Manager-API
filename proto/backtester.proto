@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package backtester;
+
+import "google/protobuf/timestamp.proto";
+
+service BacktesterService {
+    rpc RunBacktest(BacktestRequest) returns (stream BacktestLogLine);
+    rpc GetResult(BacktestId) returns (BacktestResult);
+}
+
+message BacktestRequest {
+    repeated Signal signals = 1;      // Full signal data, not just IDs
+    string config_json = 2;            // JSON config overrides
+}
+
+message Signal {
+    int64 id = 1;
+    string symbol = 2;
+    string action = 3;
+    string order_type = 4;
+    double entry_price = 5;
+    double stop_loss = 6;
+    repeated double take_profit = 7;
+    google.protobuf.Timestamp timestamp = 8;
+    string source = 9;
+    int32 confidence = 10;
+}
+
+message BacktestId {
+    int64 run_id = 1;
+}
+
+message BacktestLogLine {
+    string message = 1;
+    string level = 2;  // INFO, WARNING, ERROR, RESULT
+    int32 progress = 3; // 0-100
+}
+
+message BacktestResult {
+    int64 run_id = 1;
+    int32 total_signals = 2;
+    int32 win_count = 3;
+    int32 loss_count = 4;
+    double win_rate = 5;
+    double total_rr = 6;
+    double profit_factor = 7;
+    double max_drawdown = 8;
+    double sharpe_ratio = 9;
+    repeated double equity_curve = 10;
+    repeated TradeDetail trades = 11;
+    google.protobuf.Timestamp started_at = 12;
+    google.protobuf.Timestamp finished_at = 13;
+}
+
+message TradeDetail {
+    int32 signal_id = 1;
+    string symbol = 2;
+    string action = 3;
+    double entry_price = 4;
+    double exit_price = 5;
+    double rr_achieved = 6;
+    string outcome = 7;  // TP_HIT, SL_HIT, OPEN, CANCELLED
+}

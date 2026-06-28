@@ -1,0 +1,10 @@
+{
+  "component": "exit_type",
+  "main_term": "exit type",
+  "aliases": ["exit", "close type", "exit strategy", "close", "tp strategy", "take profit strategy", "partial close", "trailing stop", "hard tp", "manual close", "at market", "limit close"],
+  "connectors": [":", " ", "-", "–"],
+  "value_type": "enum",
+  "enum_values": ["TRAILING_STOP", "HARD_TP", "PARTIAL_CLOSE", "MANUAL", "MARKET", "LIMIT", "AT_MARKET"],
+  "post_extraction": {},
+  "fallback_strategy": "none"
+}

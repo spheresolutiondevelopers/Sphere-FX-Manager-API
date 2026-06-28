@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  # ────────────────────────────────────────────────────────────────
+  # 1. MS SQL Server (Linux-based container)
+  # ────────────────────────────────────────────────────────────────
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sphere-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-YourStrong!Password}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${MSSQL_SA_PASSWORD:-YourStrong!Password}", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sphere-net
+
+  # ────────────────────────────────────────────────────────────────
+  # 2. FastAPI Gateway
+  # ────────────────────────────────────────────────────────────────
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: sphere-fastapi
+    environment:
+      DATABASE_URL: "mssql+pyodbc://sa:${MSSQL_SA_PASSWORD:-YourStrong!Password}@mssql:1433/nexus?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+      EXTRACTOR_GRPC_ADDR: "extractor:50051"
+      BACKTESTER_GRPC_ADDR: "backtester:50052"
+      MT5_BRIDGE_URL: "${MT5_BRIDGE_URL:-http://windows-vps:8081}"
+      JWT_SECRET: "${JWT_SECRET:-change-me-in-production}"
+      LICENSE_KEY: "${LICENSE_KEY:-dummy-license-key}"
+      TELEGRAM_API_ID: "${TELEGRAM_API_ID:-123456}"
+      TELEGRAM_API_HASH: "${TELEGRAM_API_HASH:-dummy-hash}"
+      LOG_LEVEL: "info"
+    ports:
+      - "8000:8000"
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sphere-net
+    volumes:
+      - ./config:/app/config:ro
+
+  # ────────────────────────────────────────────────────────────────
+  # 3. Go Extractor (gRPC server)
+  # ────────────────────────────────────────────────────────────────
+  extractor:
+    build:
+      context: .
+      dockerfile: Dockerfile.go
+      args:
+        SERVICE: extractor
+    container_name: sphere-extractor
+    environment:
+      CONFIG_PATH: "/app/config/config.yaml"
+      EXTRACTOR_GRPC_PORT: "50051"
+    ports:
+      - "50051:50051"
+    depends_on:
+      - mssql
+    restart: unless-stopped
+    networks:
+      - sphere-net
+    volumes:
+      - ./config:/app/config:ro
+
+  # ────────────────────────────────────────────────────────────────
+  # 4. Go Backtester (gRPC server)
+  # ────────────────────────────────────────────────────────────────
+  backtester:
+    build:
+      context: .
+      dockerfile: Dockerfile.go
+      args:
+        SERVICE: backtester
+    container_name: sphere-backtester
+    environment:
+      CONFIG_PATH: "/app/config/config.yaml"
+      BACKTESTER_GRPC_PORT: "50052"
+    ports:
+      - "50052:50052"
+    depends_on:
+      - mssql
+    restart: unless-stopped
+    networks:
+      - sphere-net
+    volumes:
+      - ./config:/app/config:ro
+
+  # ────────────────────────────────────────────────────────────────
+  # 5. Go Live Worker (DB consumer – no gRPC server)
+  # ────────────────────────────────────────────────────────────────
+  live_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.go
+      args:
+        SERVICE: live_worker
+    container_name: sphere-live-worker
+    environment:
+      CONFIG_PATH: "/app/config/config.yaml"
+      DATABASE_URL: "mssql://sa:${MSSQL_SA_PASSWORD:-YourStrong!Password}@mssql:1433?database=nexus"
+      MT5_BRIDGE_URL: "${MT5_BRIDGE_URL:-http://windows-vps:8081}"
+    depends_on:
+      - mssql
+    restart: unless-stopped
+    networks:
+      - sphere-net
+    volumes:
+      - ./config:/app/config:ro
+
+  # ────────────────────────────────────────────────────────────────
+  # 6. Telethon Listener (containerised, but runs asyncio)
+  # ────────────────────────────────────────────────────────────────
+  telethon:
+    build:
+      context: .
+      dockerfile: Dockerfile.telethon
+    container_name: sphere-telethon
+    environment:
+      TELEGRAM_API_ID: "${TELEGRAM_API_ID:-123456}"
+      TELEGRAM_API_HASH: "${TELEGRAM_API_HASH:-dummy-hash}"
+      FASTAPI_URL: "http://fastapi:8000/api/v1/webhook/telegram"
+      HMAC_SECRET: "${HMAC_SECRET:-change-me-in-production}"
+    depends_on:
+      - fastapi
+    restart: unless-stopped
+    networks:
+      - sphere-net
+    volumes:
+      - ./telegram_sessions:/app/sessions
+
+networks:
+  sphere-net:
+    driver: bridge
+
+volumes:
+  mssql_data:

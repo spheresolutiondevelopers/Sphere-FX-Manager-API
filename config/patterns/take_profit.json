@@ -1,0 +1,17 @@
+{
+  "component": "take_profit",
+  "main_term": "take profit",
+  "aliases": ["tp", "target", "profit", "t/p", "t.p.", "tp.", "take-profit", "targ", "targets", "profits"],
+  "connectors": [":", ";", "#", "=", "-", "", " "],
+  "value_type": "decimal",
+  "multi_value": true,
+  "multi_value_pattern": {
+    "with_index": "(?i)(tp|take\\s*profit|t\\s*p)\\s*(\\d+)[\\s:=-]*([\\d.,]+)",
+    "no_index_list": "([\\d.,]+)\\s*[,;]\\s*([\\d.,]+)"
+  },
+  "post_extraction": {
+    "remove_spaces_inside_number": true,
+    "replace_commas_with_dots": true,
+    "validate_against_symbol": true
+  }
+}

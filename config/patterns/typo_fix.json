@@ -1,0 +1,33 @@
+{
+  "comment": "Common typos and abbreviations to correct before extraction. Applied during cleaning pipeline.",
+  "replacements": [
+    { "from": "stopl oss", "to": "stop loss" },
+    { "from": "stoploss", "to": "stop loss" },
+    { "from": "stop-loss", "to": "stop loss" },
+    { "from": "s/l", "to": "sl" },
+    { "from": "s.l.", "to": "sl" },
+    { "from": "tp1", "to": "tp 1" },
+    { "from": "tp2", "to": "tp 2" },
+    { "from": "tp3", "to": "tp 3" },
+    { "from": "t/p", "to": "tp" },
+    { "from": "t.p.", "to": "tp" },
+    { "from": "target1", "to": "tp 1" },
+    { "from": "target2", "to": "tp 2" },
+    { "from": "target3", "to": "tp 3" },
+    { "from": "entryprice", "to": "entry price" },
+    { "from": "entry-price", "to": "entry price" },
+    { "from": "entry_price", "to": "entry price" },
+    { "from": "entry @", "to": "entry at" },
+    { "from": "@entry", "to": "entry @ " },
+    { "from": "buy@", "to": "buy @ " },
+    { "from": "sell@", "to": "sell @ " },
+    { "from": "long@", "to": "long @ " },
+    { "from": "short@", "to": "short @ " },
+    { "from": "buy now", "to": "market buy" },
+    { "from": "sell now", "to": "market sell" },
+    { "from": "take profit 1", "to": "tp 1" },
+    { "from": "take profit 2", "to": "tp 2" },
+    { "from": "take profit 3", "to": "tp 3" },
+    { "from": "target profit", "to": "take profit" }
+  ]
+}

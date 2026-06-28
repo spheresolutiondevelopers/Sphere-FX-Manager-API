@@ -1,0 +1,12 @@
+{
+  "component": "entry_price",
+  "main_term": "entry",
+  "aliases": ["@", "at", "price", "enter", "entry price", "price at", "level", "buy at", "sell at"],
+  "connectors": ["@", ":", "=", "", "-", "~", "–"],
+  "value_type": "decimal",
+  "post_extraction": {
+    "remove_spaces_inside_number": true,
+    "replace_commas_with_dots": false,
+    "validate_against_symbol": true
+  }
+}
