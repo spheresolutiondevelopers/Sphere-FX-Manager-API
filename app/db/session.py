@@ -5,9 +5,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from app.config import settings
 from app.db.base import Base
+import os
 
 # ──────────────────────────────────────────────────────────────
-# Async Engine (for FastAPI)
+# Async Engine (for FastAPI) - using aioodbc
 # ──────────────────────────────────────────────────────────────
 
 async_engine = create_async_engine(
@@ -45,11 +46,37 @@ async def get_async_db():
 
 
 # ──────────────────────────────────────────────────────────────
-# Sync Engine (for Alembic and CLI tools)
+# Sync Engine (for Alembic and CLI tools) - using pyodbc
 # ──────────────────────────────────────────────────────────────
 
+# For Windows, we need to ensure the ODBC driver name is correct
+def get_sync_connection_string():
+    """Return the correct sync connection string for Windows."""
+    url = settings.SYNC_DATABASE_URL
+    
+    # If using ODBC Driver 18, ensure the driver name is correct
+    if "ODBC Driver 18" in url or "ODBC+Driver" in url:
+        # Already correct
+        return url
+    
+    # For Windows, explicitly set the driver
+    # Replace with your actual driver name
+    if "pyodbc" in url:
+        # Remove any existing driver parameter and add the correct one
+        import re
+        # Remove existing driver parameter
+        url = re.sub(r'\?driver=[^&]*', '', url)
+        url = re.sub(r'&driver=[^&]*', '', url)
+        # Add the correct driver
+        if '?' in url:
+            url += '&driver=ODBC+Driver+18+for+SQL+Server'
+        else:
+            url += '?driver=ODBC+Driver+18+for+SQL+Server'
+    
+    return url
+
 sync_engine = create_engine(
-    settings.SYNC_DATABASE_URL,
+    get_sync_connection_string(),
     echo=settings.DEBUG,
     pool_size=5,
     max_overflow=10,

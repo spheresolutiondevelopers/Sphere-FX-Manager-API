@@ -5,6 +5,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import sys
+import os
+
+# Add project root to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.config import settings
 from app.exceptions import register_exception_handlers
@@ -14,7 +19,6 @@ from app.services.extraction_grpc import init_extractor_client, close_extractor_
 from app.services.backtest_grpc import init_backtester_client, close_backtester_client
 from app.routes.v1 import router as v1_router
 from app.websocket import backtest_logs_websocket, live_updates_websocket
-from app.dependencies import JWTBearer
 
 # ──────────────────────────────────────────────────────────────
 #  Logging
@@ -45,17 +49,29 @@ async def lifespan(app: FastAPI):
     logger.info("Metrics initialized")
 
     # Initialize gRPC clients
-    await init_extractor_client()
-    logger.info(f"Extractor gRPC client connected to {settings.EXTRACTOR_GRPC_ADDR}")
+    try:
+        await init_extractor_client()
+        logger.info(f"Extractor gRPC client connected to {settings.EXTRACTOR_GRPC_ADDR}")
+    except Exception as e:
+        logger.error(f"Failed to connect to Extractor gRPC: {e}")
+        # Don't fail startup - allow API to start without extractor
 
-    await init_backtester_client()
-    logger.info(f"Backtester gRPC client connected to {settings.BACKTESTER_GRPC_ADDR}")
+    try:
+        await init_backtester_client()
+        logger.info(f"Backtester gRPC client connected to {settings.BACKTESTER_GRPC_ADDR}")
+    except Exception as e:
+        logger.error(f"Failed to connect to Backtester gRPC: {e}")
 
     # Warm up database connection
-    from app.db.session import async_engine
-    async with async_engine.connect() as conn:
-        await conn.execute("SELECT 1")
-    logger.info("Database connection verified")
+    try:
+        from app.db.session import async_engine
+        async with async_engine.connect() as conn:
+            await conn.execute("SELECT 1")
+        logger.info("Database connection verified")
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        # In production, you may want to exit here
+        # raise
 
     logger.info("Sphere FX Manager API startup complete")
     yield
@@ -64,14 +80,25 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Sphere FX Manager API...")
 
     # Close gRPC clients
-    await close_extractor_client()
-    await close_backtester_client()
-    logger.info("gRPC clients closed")
+    try:
+        await close_extractor_client()
+        logger.info("Extractor gRPC client closed")
+    except Exception as e:
+        logger.error(f"Error closing Extractor gRPC: {e}")
+
+    try:
+        await close_backtester_client()
+        logger.info("Backtester gRPC client closed")
+    except Exception as e:
+        logger.error(f"Error closing Backtester gRPC: {e}")
 
     # Dispose database engine
-    from app.db.session import async_engine
-    await async_engine.dispose()
-    logger.info("Database engine disposed")
+    try:
+        from app.db.session import async_engine
+        await async_engine.dispose()
+        logger.info("Database engine disposed")
+    except Exception as e:
+        logger.error(f"Error disposing database engine: {e}")
 
     logger.info("Sphere FX Manager API shutdown complete")
 
@@ -105,13 +132,11 @@ def create_app() -> FastAPI:
     )
 
     # ── Rate Limiting Middleware ──────────────────────────────
-    # Note: We can apply it globally or per-route.
-    # For simplicity, we'll apply it globally.
-    # But we need to skip certain paths (e.g., /metrics, /health).
     @app.middleware("http")
     async def rate_limit_middleware_wrapper(request: Request, call_next):
         # Skip rate limiting for health and metrics endpoints
-        if request.url.path in ["/health", "/metrics", "/docs", "/redoc", "/openapi.json"]:
+        skip_paths = ["/health", "/metrics", "/docs", "/redoc", "/openapi.json", "/"]
+        if request.url.path in skip_paths or request.url.path.startswith("/docs"):
             return await call_next(request)
         return await rate_limit_middleware(request, call_next)
 
@@ -135,7 +160,7 @@ def create_app() -> FastAPI:
     @app.get("/health")
     async def health_check():
         """Liveness and readiness probe."""
-        return {"status": "healthy", "service": "sphere-fx-manager-api"}
+        return {"status": "healthy", "service": "sphere-fx-manager-api", "version": "1.0.0"}
 
     # ── Root ───────────────────────────────────────────────────
     @app.get("/")
@@ -145,6 +170,7 @@ def create_app() -> FastAPI:
             "service": "Sphere FX Manager API",
             "version": "1.0.0",
             "docs": "/docs",
+            "redoc": "/redoc",
             "status": "operational",
         }
 

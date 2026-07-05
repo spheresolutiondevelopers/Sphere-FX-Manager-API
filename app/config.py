@@ -1,58 +1,19 @@
-"""Configuration management using Pydantic Settings with YAML support."""
-
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings
 import yaml
 import os
 from pathlib import Path
-
-# ──────────────────────────────────────────────────────────────
-#  YAML Config Models (mirrors config/config.yaml)
-# ──────────────────────────────────────────────────────────────
-
-class RiskLimitsConfig(BaseModel):
-    max_lot: float = Field(100.0, description="Maximum lot size per trade")
-    min_lot: float = Field(0.01, description="Minimum lot size per trade")
-    max_daily_drawdown_percent: float = Field(5.0, description="Maximum daily drawdown percentage")
-    min_rr_ratio: float = Field(1.5, description="Minimum risk-reward ratio required")
-    max_positions: int = Field(10, description="Maximum concurrent open positions")
-
-
-class BacktesterConfig(BaseModel):
-    default_rr: float = Field(2.0, description="Default risk-reward ratio")
-    default_spread_pips: float = Field(1.5, description="Default spread in pips")
-    default_commission: float = Field(3.5, description="Default commission per lot in USD")
-    min_data_points: int = Field(100, description="Minimum historical data points required")
-
-
-class QueueConfig(BaseModel):
-    poll_interval_seconds: int = Field(2, description="How often the Live Worker polls the queue")
-    max_claim_attempts: int = Field(3, description="Maximum attempts before marking job as failed")
-
-
-class PoolConfig(BaseModel):
-    async_pool_size: int = Field(20, description="Async connection pool size")
-    async_max_overflow: int = Field(10, description="Async max overflow connections")
-    sync_pool_size: int = Field(5, description="Sync connection pool size")
-
-
-class LoggingConfig(BaseModel):
-    level: str = Field("INFO", description="Log level")
-    format: str = Field("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+import re
 
 
 class AppYamlConfig(BaseModel):
-    risk_limits: RiskLimitsConfig = Field(default_factory=RiskLimitsConfig)
-    backtester: BacktesterConfig = Field(default_factory=BacktesterConfig)
-    queue: QueueConfig = Field(default_factory=QueueConfig)
-    pool: PoolConfig = Field(default_factory=PoolConfig)
-    logging: LoggingConfig = Field(default_factory=LoggingConfig)
+    risk_limits: Dict[str, Any] = Field(default_factory=dict)
+    backtester: Dict[str, Any] = Field(default_factory=dict)
+    queue: Dict[str, Any] = Field(default_factory=dict)
+    pool: Dict[str, Any] = Field(default_factory=dict)
+    logging: Dict[str, Any] = Field(default_factory=dict)
 
-
-# ──────────────────────────────────────────────────────────────
-#  Environment Settings (loaded from .env)
-# ──────────────────────────────────────────────────────────────
 
 class Settings(BaseSettings):
     # ─── Database ──────────────────────────────────────────────
@@ -89,6 +50,9 @@ class Settings(BaseSettings):
     CORS_EXPOSE_HEADERS: List[str] = Field([], description="Exposed CORS headers")
     CORS_MAX_AGE: int = Field(600, description="CORS preflight max age")
 
+    # ─── Fernet Key ────────────────────────────────────────────
+    FERNET_KEY: Optional[str] = Field(None, description="Fernet key for encryption")
+
     # ─── Debug ──────────────────────────────────────────────────
     DEBUG: bool = Field(False, description="Enable debug mode")
 
@@ -109,27 +73,32 @@ class Settings(BaseSettings):
     @classmethod
     def default_sync_url(cls, v: Optional[str], info) -> str:
         if v is None:
-            # Derive sync URL from async URL by replacing the async driver
             async_url = info.data.get("DATABASE_URL", "")
-            if async_url.startswith("mssql+async"):
-                return async_url.replace("mssql+async", "mssql")
+            if async_url.startswith("mssql+aioodbc"):
+                return async_url.replace("mssql+aioodbc", "mssql+pyodbc")
             if async_url.startswith("postgresql+async"):
                 return async_url.replace("postgresql+async", "postgresql")
             if async_url.startswith("sqlite+async"):
                 return async_url.replace("sqlite+async", "sqlite")
             return async_url
         return v
+    
+    @field_validator("FERNET_KEY", mode="before")
+    @classmethod
+    def default_fernet_key(cls, v: Optional[str]) -> str:
+        if v is None:
+            # Generate a random key for development
+            from cryptography.fernet import Fernet
+            return Fernet.generate_key().decode()
+        return v
 
     def load_yaml_config(self) -> AppYamlConfig:
-        """
-        Load and parse the YAML configuration file.
-        """
+        """Load and parse the YAML configuration file."""
         if self._yaml_config is not None:
             return self._yaml_config
 
         yaml_path = Path(self.CONFIG_YAML_PATH)
         if not yaml_path.exists():
-            # Use defaults
             self._yaml_config = AppYamlConfig()
             return self._yaml_config
 
@@ -139,13 +108,11 @@ class Settings(BaseSettings):
             self._yaml_config = AppYamlConfig(**data)
             return self._yaml_config
         except Exception:
-            # Fallback to defaults
             self._yaml_config = AppYamlConfig()
             return self._yaml_config
 
     @property
     def yaml(self) -> AppYamlConfig:
-        """Property accessor for YAML config."""
         return self.load_yaml_config()
 
     class Config:
@@ -155,12 +122,7 @@ class Settings(BaseSettings):
         extra = "ignore"
 
 
-# ──────────────────────────────────────────────────────────────
-#  Global settings instance
-# ──────────────────────────────────────────────────────────────
-
 settings = Settings()
 
-# Ensure SYNC_DATABASE_URL is set
 if not settings.SYNC_DATABASE_URL:
-    settings.SYNC_DATABASE_URL = settings.DATABASE_URL.replace("+async", "")
+    settings.SYNC_DATABASE_URL = settings.DATABASE_URL.replace("+aioodbc", "+pyodbc")
