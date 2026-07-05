@@ -106,6 +106,9 @@ def upgrade() -> None:
     )
 
     # Create signals table
+    # Find the signals table creation section (around line 70-90)
+# Change the ForeignKey constraints from CASCADE to NO ACTION
+
     op.create_table(
         'signals',
         sa.Column('id', sa.Integer(), nullable=False),
@@ -123,7 +126,8 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), server_default=sa.text('GETUTCDATE()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(['channel_id'], ['telegram_channels.id'], ondelete='SET NULL'),
-        sa.ForeignKeyConstraint(['created_by'], ['users.id'], ondelete='CASCADE'),
+        # CHANGED: Remove ON DELETE CASCADE to avoid multiple cascade paths
+        sa.ForeignKeyConstraint(['created_by'], ['users.id'], ondelete='NO ACTION'),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_signals_id'), 'signals', ['id'], unique=False)

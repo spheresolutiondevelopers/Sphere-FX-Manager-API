@@ -1,74 +1,64 @@
 #!/usr/bin/env python
-"""One-time database initialisation script.
+"""One-time database initialisation script."""
 
-Creates the database if it doesn't exist, runs all migrations,
-and seeds default data (admin user, license, symbols).
-"""
-
-import asyncio
-import os
 import sys
+import os
 from pathlib import Path
-from sqlalchemy import text
+from datetime import datetime, timedelta
+import logging
+import bcrypt  # <-- ADD THIS
+
+from sqlalchemy import text, select
 
 # Add project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.config import settings
-from app.db.session import async_engine, AsyncSessionLocal
-from app.services.auth import hash_password
+from app.db.session import sync_engine, SyncSessionLocal
 from app.models import User, License, Symbol
-from datetime import datetime, timedelta
-from decimal import Decimal
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def create_database_if_not_exists():
-    """Create the database if it does not exist (MS SQL Server)."""
-    # Extract database name from connection string
-    db_name = settings.DATABASE_URL.split("/")[-1].split("?")[0]
-    master_url = settings.DATABASE_URL.replace(f"/{db_name}", "/master")
-
-    # We'll use a raw connection to check/ create the database
-    # For SQL Server, we need to connect to master first
+def create_database_if_not_exists():
+    """Verify database connection."""
     try:
-        # Use the async engine to check database existence
-        # Simplified: we'll just try to connect and run migrations
-        # If the database doesn't exist, Alembic will handle it.
-        # For MS SQL, we can run a simple check.
-        from sqlalchemy import inspect
-        async with async_engine.connect() as conn:
-            # Check if we can query a system table
-            result = await conn.execute(text("SELECT DB_NAME()"))
-            db_name_actual = result.scalar()
-            logger.info(f"Connected to database: {db_name_actual}")
+        with sync_engine.connect() as conn:
+            result = conn.execute(text("SELECT DB_NAME()"))
+            db_name = result.scalar()
+            logger.info(f"Connected to database: {db_name}")
     except Exception as e:
         logger.error(f"Could not connect to database: {e}")
         raise
 
 
-async def seed_default_data():
+def seed_default_data():
     """Seed default data if tables are empty."""
-    async with AsyncSessionLocal() as session:
+    with SyncSessionLocal() as session:
         # Check if any users exist
-        from sqlalchemy import select
         stmt = select(User).limit(1)
-        result = await session.execute(stmt)
+        result = session.execute(stmt)
         user = result.scalar_one_or_none()
 
         if not user:
             logger.info("Seeding default admin user...")
+
+            # Generate bcrypt hash directly (same format Passlib uses)
+            # Use a fixed salt or generate new one
+            hashed_password = bcrypt.hashpw(
+                b"admin123",
+                bcrypt.gensalt()
+            ).decode('utf-8')
+
             admin = User(
                 email="admin@spherefx.com",
-                hashed_password=hash_password("admin123"),  # Change me!
+                hashed_password=hashed_password,
                 is_active=True,
                 role="admin",
             )
             session.add(admin)
-            await session.flush()
+            session.flush()
 
             # Seed default license for admin
             logger.info("Seeding default license...")
@@ -100,33 +90,19 @@ async def seed_default_data():
                 symbol = Symbol(**sym_data, is_active=True)
                 session.add(symbol)
 
-            await session.commit()
+            session.commit()
             logger.info("✅ Default data seeded successfully")
+            logger.warning("⚠️  Default admin credentials: admin@spherefx.com / admin123 – CHANGE THIS!")
         else:
             logger.info("Default data already exists; skipping seed.")
 
 
-async def main():
-    """Main entry point."""
+def main():
     logger.info("Starting database initialization...")
-    await create_database_if_not_exists()
-
-    # Run migrations
-    logger.info("Running migrations...")
-    # We can call alembic programmatically, but for simplicity we'll use the shell script.
-    # The script expects to be run from the root.
-    import subprocess
-    result = subprocess.run(["bash", "scripts/run_migrations.sh"], capture_output=True, text=True)
-    if result.returncode != 0:
-        logger.error(f"Migrations failed: {result.stderr}")
-        sys.exit(1)
-    logger.info("✅ Migrations complete")
-
-    # Seed default data
-    await seed_default_data()
-
+    create_database_if_not_exists()
+    seed_default_data()
     logger.info("✅ Database initialization complete!")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

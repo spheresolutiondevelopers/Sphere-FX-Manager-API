@@ -22,7 +22,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     # This migration is MS SQL Server specific.
     # It will be skipped on SQLite via dialect branching in env.py.
-    # We use `op.execute` with raw SQL.
+    # We use op.execute with raw SQL.
     # We'll wrap in a dialect check to avoid errors on SQLite.
     # But env.py already handles this by skipping when dialect is sqlite.
     # So we can safely execute these statements; they will only be run on MSSQL.
@@ -57,6 +57,7 @@ def upgrade() -> None:
     # Create a helper table for queued messages (fallback for simplicity)
     # In production, we'd use the actual Service Broker queues.
     # But for portability, we also keep a table-backed queue for testing.
+    # CHANGED: Removed invalid mssql_clustered parameter
     op.create_table(
         'service_broker_queue',
         sa.Column('id', sa.Integer(), nullable=False, autoincrement=True),
@@ -65,7 +66,6 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), server_default=sa.text('GETUTCDATE()'), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         mysql_engine='InnoDB',
-        mssql_clustered=True,
     )
     op.create_index(op.f('ix_service_broker_queue_queue_name'), 'service_broker_queue', ['queue_name'], unique=False)
     op.create_index(op.f('ix_service_broker_queue_created_at'), 'service_broker_queue', ['created_at'], unique=False)

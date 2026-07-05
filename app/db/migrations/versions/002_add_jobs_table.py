@@ -35,10 +35,11 @@ def upgrade() -> None:
         sa.Column('finished_at', sa.DateTime(), nullable=True),
         sa.Column('created_at', sa.DateTime(), server_default=sa.text('GETUTCDATE()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(['signal_id'], ['signals.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['account_id'], ['mt5_accounts.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
         sa.PrimaryKeyConstraint('id'),
+        # CHANGED: All foreign keys set to NO ACTION to avoid multiple cascade paths
+        sa.ForeignKeyConstraint(['signal_id'], ['signals.id'], ondelete='NO ACTION'),
+        sa.ForeignKeyConstraint(['account_id'], ['mt5_accounts.id'], ondelete='NO ACTION'),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='NO ACTION'),
         sa.UniqueConstraint('signal_id', 'account_id', name='uq_job_signal_account')
     )
     op.create_index(op.f('ix_live_jobs_id'), 'live_jobs', ['id'], unique=False)
@@ -60,8 +61,9 @@ def upgrade() -> None:
         sa.Column('status', sa.String(20), server_default='PENDING', nullable=False),
         sa.Column('created_at', sa.DateTime(), server_default=sa.text('GETUTCDATE()'), nullable=False),
         sa.Column('filled_at', sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(['job_id'], ['live_jobs.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['account_id'], ['mt5_accounts.id'], ondelete='CASCADE'),
+        # CHANGED: All foreign keys to NO ACTION
+        sa.ForeignKeyConstraint(['job_id'], ['live_jobs.id'], ondelete='NO ACTION'),
+        sa.ForeignKeyConstraint(['account_id'], ['mt5_accounts.id'], ondelete='NO ACTION'),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_live_orders_id'), 'live_orders', ['id'], unique=False)
@@ -87,9 +89,10 @@ def upgrade() -> None:
         sa.Column('opened_at', sa.DateTime(), server_default=sa.text('GETUTCDATE()'), nullable=False),
         sa.Column('closed_at', sa.DateTime(), nullable=True),
         sa.Column('close_reason', sa.String(50), nullable=True),
-        sa.ForeignKeyConstraint(['job_id'], ['live_jobs.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['order_id'], ['live_orders.id'], ondelete='CASCADE'),
-        sa.ForeignKeyConstraint(['account_id'], ['mt5_accounts.id'], ondelete='CASCADE'),
+        # CHANGED: All foreign keys to NO ACTION
+        sa.ForeignKeyConstraint(['job_id'], ['live_jobs.id'], ondelete='NO ACTION'),
+        sa.ForeignKeyConstraint(['order_id'], ['live_orders.id'], ondelete='NO ACTION'),
+        sa.ForeignKeyConstraint(['account_id'], ['mt5_accounts.id'], ondelete='NO ACTION'),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_live_positions_id'), 'live_positions', ['id'], unique=False)

@@ -1,5 +1,7 @@
 """Application-wide constants."""
 
+from decimal import Decimal
+
 # ─── Signal Actions ─────────────────────────────────────────────
 ACTIONS = {"BUY", "SELL"}
 ACTION_BUY = "BUY"
