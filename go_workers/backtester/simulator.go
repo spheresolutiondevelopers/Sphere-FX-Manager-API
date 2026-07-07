@@ -1,4 +1,4 @@
-package simulator
+package main
 
 import (
     "fmt"
@@ -7,9 +7,7 @@ import (
     "sync"
     "time"
 
-    "sphere-fx-manager-api/go_workers/backtester/config"
-    "sphere-fx-manager-api/go_workers/backtester/metrics"
-    "sphere-fx-manager-api/go_workers/backtester/risk"
+    "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Signal struct {
@@ -26,13 +24,13 @@ type Signal struct {
 }
 
 type Trade struct {
-    SignalID    int64
-    Symbol      string
-    Action      string
-    EntryPrice  float64
-    ExitPrice   float64
-    RRAchieved  float64
-    Outcome     string // TP_HIT, SL_HIT, OPEN, CANCELLED
+    SignalID   int64
+    Symbol     string
+    Action     string
+    EntryPrice float64
+    ExitPrice  float64
+    RRAchieved float64
+    Outcome    string // TP_HIT, SL_HIT, OPEN, CANCELLED
 }
 
 type LogLine struct {
@@ -59,24 +57,20 @@ type SimulationResult struct {
 }
 
 type Simulator struct {
-    cfg            *config.Config
-    mu             sync.RWMutex
-    cache          map[int64]SimulationResult
-    runCounter     int64
-    resultTTL      time.Duration
+    cfg       *Config
+    mu        sync.RWMutex
+    cache     map[int64]SimulationResult
+    runCounter int64
+    resultTTL time.Duration
 }
 
-func NewSimulator(cfg *config.Config) *Simulator {
+func NewSimulator(cfg *Config) *Simulator {
     return &Simulator{
-        cfg:         cfg,
-        cache:       make(map[int64]SimulationResult),
-        runCounter:  0,
-        resultTTL:   time.Duration(cfg.CacheTTLSeconds) * time.Second,
+        cfg:       cfg,
+        cache:     make(map[int64]SimulationResult),
+        runCounter: 0,
+        resultTTL: time.Duration(cfg.CacheTTLSeconds) * time.Second,
     }
-}
-
-func (s *Simulator) Config() *config.Config {
-    return s.cfg
 }
 
 func (s *Simulator) Run(signals []Signal) SimulationResult {
@@ -88,66 +82,54 @@ func (s *Simulator) Run(signals []Signal) SimulationResult {
     startedAt := time.Now()
     logs := []LogLine{
         {Message: fmt.Sprintf("Starting backtest run #%d with %d signals", runID, len(signals)), Level: "INFO", Progress: 0},
-        {Message: fmt.Sprintf("RR ratio: %.2f, Spread: %.2f pips, TP Strategy: %s", s.cfg.DefaultRR, s.cfg.SpreadPips, s.cfg.DefaultTPStrategy), Level: "INFO", Progress: 0},
+        {Message: fmt.Sprintf("RR: %.2f, Spread: %.2f pips, TP Strategy: %s", s.cfg.DefaultRR, s.cfg.SpreadPips, s.cfg.DefaultTPStrategy), Level: "INFO", Progress: 0},
     }
 
-    // Sort signals by timestamp
-    sortedSignals := make([]Signal, len(signals))
-    copy(sortedSignals, signals)
-    sort.Slice(sortedSignals, func(i, j int) bool {
-        return sortedSignals[i].Timestamp.Before(sortedSignals[j].Timestamp)
+    // Sort by timestamp
+    sorted := make([]Signal, len(signals))
+    copy(sorted, signals)
+    sort.Slice(sorted, func(i, j int) bool {
+        return sorted[i].Timestamp.Before(sorted[j].Timestamp)
     })
 
-    // Simulate each signal
     var trades []Trade
     var equityPoints []float64
-    cumulativeRR := 0.0
-    wins := 0
-    losses := 0
+    cumRR := 0.0
+    wins, losses := 0, 0
 
-    for i, sig := range sortedSignals {
-        // Simulate trade
+    for i, sig := range sorted {
         trade := s.simulateTrade(sig)
         trades = append(trades, trade)
 
         if trade.Outcome == "TP_HIT" {
             wins++
-            cumulativeRR += trade.RRAchieved
+            cumRR += trade.RRAchieved
         } else if trade.Outcome == "SL_HIT" {
             losses++
-            cumulativeRR += trade.RRAchieved // negative RR
-        } else {
-            // OPEN or CANCELLED - treat as 0 RR
+            cumRR += trade.RRAchieved // negative
         }
+        equityPoints = append(equityPoints, cumRR)
 
-        equityPoints = append(equityPoints, cumulativeRR)
-
-        // Log progress
-        if (i+1)%10 == 0 || i == len(sortedSignals)-1 {
-            progress := int(float64(i+1) / float64(len(sortedSignals)) * 100)
+        if (i+1)%10 == 0 || i == len(sorted)-1 {
+            progress := int(float64(i+1) / float64(len(sorted)) * 100)
             logs = append(logs, LogLine{
-                Message:  fmt.Sprintf("Processed %d/%d signals... (RR: %.2f)", i+1, len(sortedSignals), cumulativeRR),
+                Message:  fmt.Sprintf("Processed %d/%d signals ... RR: %.2f", i+1, len(sorted), cumRR),
                 Level:    "INFO",
                 Progress: progress,
             })
         }
     }
 
-    // Compute metrics
     totalSignals := len(trades)
-    winCount := wins
-    lossCount := losses
-    winRate := float64(winCount) / float64(totalSignals) * 100
-    totalRR := cumulativeRR
-    profitFactor := metrics.CalculateProfitFactor(trades)
-    maxDrawdown := metrics.CalculateMaxDrawdown(equityPoints)
-    sharpeRatio := metrics.CalculateSharpeRatio(equityPoints)
+    winRate := float64(wins) / float64(totalSignals) * 100
+    totalRR := cumRR
+    profitFactor := calculateProfitFactor(trades)
+    maxDrawdown := calculateMaxDrawdown(equityPoints)
+    sharpeRatio := calculateSharpeRatio(equityPoints)
 
-    // Log completion
     finishedAt := time.Now()
-    duration := finishedAt.Sub(startedAt)
     logs = append(logs, LogLine{
-        Message:  fmt.Sprintf("Backtest completed in %.2f seconds. Win Rate: %.2f%%, Total RR: %.2f", duration.Seconds(), winRate, totalRR),
+        Message:  fmt.Sprintf("Backtest done in %.2fs. Win Rate: %.2f%%, Total RR: %.2f", finishedAt.Sub(startedAt).Seconds(), winRate, totalRR),
         Level:    "INFO",
         Progress: 100,
     })
@@ -155,8 +137,8 @@ func (s *Simulator) Run(signals []Signal) SimulationResult {
     result := SimulationResult{
         RunID:         runID,
         TotalSignals:  totalSignals,
-        WinCount:      winCount,
-        LossCount:     lossCount,
+        WinCount:      wins,
+        LossCount:     losses,
         WinRate:       winRate,
         TotalRR:       totalRR,
         ProfitFactor:  profitFactor,
@@ -169,7 +151,6 @@ func (s *Simulator) Run(signals []Signal) SimulationResult {
         FinishedAt:    finishedAt,
     }
 
-    // Cache result
     s.mu.Lock()
     s.cache[runID] = result
     s.mu.Unlock()
@@ -178,71 +159,65 @@ func (s *Simulator) Run(signals []Signal) SimulationResult {
 }
 
 func (s *Simulator) simulateTrade(sig Signal) Trade {
-    // Apply spread to entry price
-    entryPrice := sig.EntryPrice
-    spreadAdjustment := s.cfg.SpreadPips / 10000.0 // approximate pips to price
+    entry := sig.EntryPrice
+    // Apply spread (approximate)
+    spreadAdj := s.cfg.SpreadPips / 10000.0
     if sig.Action == "BUY" {
-        entryPrice += spreadAdjustment
+        entry += spreadAdj
     } else {
-        entryPrice -= spreadAdjustment
+        entry -= spreadAdj
     }
 
-    // Determine exit price based on TP/SL
-    exitPrice := entryPrice
+    exitPrice := entry
     outcome := "OPEN"
     rr := 0.0
 
     if sig.Action == "BUY" {
-        // BUY: TP is above entry, SL is below
-        // Check if SL or TP hit first
-        // We assume a simple model: if TP is reached before SL
+        // TP above entry, SL below
         if len(sig.TakeProfit) > 0 {
-            // Sequential TP: take first TP
             tpPrice := sig.TakeProfit[0]
-            if tpPrice > entryPrice {
+            if tpPrice > entry {
                 exitPrice = tpPrice
                 outcome = "TP_HIT"
-                rr = (tpPrice - entryPrice) / (entryPrice - sig.StopLoss)
-            } else if sig.StopLoss < entryPrice {
+                rr = (tpPrice - entry) / (entry - sig.StopLoss)
+            } else if sig.StopLoss < entry {
                 exitPrice = sig.StopLoss
                 outcome = "SL_HIT"
-                rr = (sig.StopLoss - entryPrice) / (entryPrice - sig.StopLoss)
+                rr = (sig.StopLoss - entry) / (entry - sig.StopLoss)
                 if rr > 0 {
-                    rr = -rr // negative for loss
+                    rr = -rr
                 }
             }
         } else {
-            // No TP: check SL only
-            if sig.StopLoss < entryPrice {
+            if sig.StopLoss < entry {
                 exitPrice = sig.StopLoss
                 outcome = "SL_HIT"
-                rr = (sig.StopLoss - entryPrice) / (entryPrice - sig.StopLoss)
+                rr = (sig.StopLoss - entry) / (entry - sig.StopLoss)
                 if rr > 0 {
                     rr = -rr
                 }
             }
         }
     } else { // SELL
-        // SELL: TP is below entry, SL is above
         if len(sig.TakeProfit) > 0 {
             tpPrice := sig.TakeProfit[0]
-            if tpPrice < entryPrice {
+            if tpPrice < entry {
                 exitPrice = tpPrice
                 outcome = "TP_HIT"
-                rr = (entryPrice - tpPrice) / (entryPrice - sig.StopLoss)
-            } else if sig.StopLoss > entryPrice {
+                rr = (entry - tpPrice) / (entry - sig.StopLoss)
+            } else if sig.StopLoss > entry {
                 exitPrice = sig.StopLoss
                 outcome = "SL_HIT"
-                rr = (entryPrice - sig.StopLoss) / (entryPrice - sig.StopLoss)
+                rr = (entry - sig.StopLoss) / (entry - sig.StopLoss)
                 if rr > 0 {
                     rr = -rr
                 }
             }
         } else {
-            if sig.StopLoss > entryPrice {
+            if sig.StopLoss > entry {
                 exitPrice = sig.StopLoss
                 outcome = "SL_HIT"
-                rr = (entryPrice - sig.StopLoss) / (entryPrice - sig.StopLoss)
+                rr = (entry - sig.StopLoss) / (entry - sig.StopLoss)
                 if rr > 0 {
                     rr = -rr
                 }
@@ -250,14 +225,14 @@ func (s *Simulator) simulateTrade(sig Signal) Trade {
         }
     }
 
-    // Apply RR multiplier from config
-    rr = rr * s.cfg.DefaultRR / 2.0 // normalize
+    // Scale RR by default factor
+    rr = rr * s.cfg.DefaultRR / 2.0
 
     return Trade{
         SignalID:   sig.ID,
         Symbol:     sig.Symbol,
         Action:     sig.Action,
-        EntryPrice: entryPrice,
+        EntryPrice: entry,
         ExitPrice:  exitPrice,
         RRAchieved: rr,
         Outcome:    outcome,
@@ -267,6 +242,67 @@ func (s *Simulator) simulateTrade(sig Signal) Trade {
 func (s *Simulator) GetCachedResult(runID int64) (SimulationResult, bool) {
     s.mu.RLock()
     defer s.mu.RUnlock()
-    result, ok := s.cache[runID]
-    return result, ok
+    res, ok := s.cache[runID]
+    return res, ok
+}
+
+// --- Metric functions (in same file to avoid separate package) ---
+
+func calculateProfitFactor(trades []Trade) float64 {
+    grossProfit := 0.0
+    grossLoss := 0.0
+    for _, t := range trades {
+        if t.RRAchieved > 0 {
+            grossProfit += t.RRAchieved
+        } else {
+            grossLoss += math.Abs(t.RRAchieved)
+        }
+    }
+    if grossLoss == 0 {
+        return math.Inf(1)
+    }
+    return grossProfit / grossLoss
+}
+
+func calculateMaxDrawdown(equity []float64) float64 {
+    if len(equity) < 2 {
+        return 0
+    }
+    maxDD := 0.0
+    peak := equity[0]
+    for _, v := range equity {
+        if v > peak {
+            peak = v
+        }
+        dd := peak - v
+        if dd > maxDD {
+            maxDD = dd
+        }
+    }
+    return maxDD
+}
+
+func calculateSharpeRatio(equity []float64) float64 {
+    if len(equity) < 2 {
+        return 0
+    }
+    returns := make([]float64, len(equity)-1)
+    for i := 0; i < len(equity)-1; i++ {
+        returns[i] = equity[i+1] - equity[i]
+    }
+    mean := 0.0
+    for _, r := range returns {
+        mean += r
+    }
+    mean /= float64(len(returns))
+    var variance float64
+    for _, r := range returns {
+        variance += (r - mean) * (r - mean)
+    }
+    variance /= float64(len(returns))
+    stdDev := math.Sqrt(variance)
+    if stdDev == 0 {
+        return 0
+    }
+    return mean / stdDev
 }

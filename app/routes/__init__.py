@@ -1,17 +1,17 @@
 """API version 1 routers."""
 
 from fastapi import APIRouter
-from .signals import router as signals_router
-from .backtest import router as backtest_router
-from .live import router as live_router
-from .channels import router as channels_router
-from .symbols import router as symbols_router
-from .accounts import router as accounts_router
-from .license import router as license_router
-from .user import router as user_router
-from .webhook import router as webhook_router
-from .configuration import router as configuration_router
-from .health import router as health_router
+from .v1.signals import router as signals_router
+from .v1.backtest import router as backtest_router
+from .v1.live import router as live_router
+from .v1.channels import router as channels_router
+from .v1.symbols import router as symbols_router
+from .v1.accounts import router as accounts_router
+from .v1.license import router as license_router
+from .v1.user import router as user_router
+from .v1.webhook import router as webhook_router
+from .v1.configuration import router as configuration_router
+from .v1.health import router as health_router
 
 router = APIRouter()
 

@@ -1,9 +1,8 @@
-package config
+package main
 
 import (
     "log"
     "os"
-    "strconv"
     "time"
 
     "github.com/spf13/viper"
@@ -32,7 +31,6 @@ func LoadConfig() *Config {
         log.Printf("Warning: config file not found, using defaults: %v", err)
     }
 
-    // Set defaults
     viper.SetDefault("backtester.grpc_port", "50052")
     viper.SetDefault("backtester.log_level", "info")
     viper.SetDefault("backtester.default_rr", 2.0)
@@ -44,7 +42,6 @@ func LoadConfig() *Config {
     viper.SetDefault("backtester.slippage_model", "fixed")
     viper.SetDefault("backtester.cache_ttl_seconds", 3600)
 
-    // Environment override
     if port := os.Getenv("BACKTESTER_GRPC_PORT"); port != "" {
         viper.Set("backtester.grpc_port", port)
     }

@@ -1,4 +1,4 @@
-package risk
+package main
 
 import (
 	"database/sql"

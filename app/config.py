@@ -1,19 +1,64 @@
+"""
+Configuration management using Pydantic Settings with YAML support.
+Loads environment variables from .env and merges with config/config.yaml.
+"""
+
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings
+from cryptography.fernet import Fernet
 import yaml
 import os
 from pathlib import Path
-import re
+import base64
+
+
+# ──────────────────────────────────────────────────────────────
+#  YAML Config Models – define the structure of config.yaml
+# ──────────────────────────────────────────────────────────────
+
+class RiskLimitsConfig(BaseModel):
+    max_lot: float = 100.0
+    min_lot: float = 0.01
+    max_daily_drawdown_percent: float = 5.0
+    min_rr_ratio: float = 1.5
+    max_positions: int = 10
+
+
+class BacktesterConfig(BaseModel):
+    default_rr: float = 2.0
+    default_spread_pips: float = 1.5
+    default_commission: float = 3.5
+    min_data_points: int = 100
+
+
+class QueueConfig(BaseModel):
+    poll_interval_seconds: int = 2
+    max_claim_attempts: int = 3
+
+
+class PoolConfig(BaseModel):
+    async_pool_size: int = 20
+    async_max_overflow: int = 10
+    sync_pool_size: int = 5
+
+
+class LoggingConfig(BaseModel):
+    level: str = "INFO"
+    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 
 class AppYamlConfig(BaseModel):
-    risk_limits: Dict[str, Any] = Field(default_factory=dict)
-    backtester: Dict[str, Any] = Field(default_factory=dict)
-    queue: Dict[str, Any] = Field(default_factory=dict)
-    pool: Dict[str, Any] = Field(default_factory=dict)
-    logging: Dict[str, Any] = Field(default_factory=dict)
+    risk_limits: RiskLimitsConfig = Field(default_factory=RiskLimitsConfig)
+    backtester: BacktesterConfig = Field(default_factory=BacktesterConfig)
+    queue: QueueConfig = Field(default_factory=QueueConfig)
+    pool: PoolConfig = Field(default_factory=PoolConfig)
+    logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
+
+# ──────────────────────────────────────────────────────────────
+#  Environment Settings – loaded from .env
+# ──────────────────────────────────────────────────────────────
 
 class Settings(BaseSettings):
     # ─── Database ──────────────────────────────────────────────
@@ -50,7 +95,8 @@ class Settings(BaseSettings):
     CORS_EXPOSE_HEADERS: List[str] = Field([], description="Exposed CORS headers")
     CORS_MAX_AGE: int = Field(600, description="CORS preflight max age")
 
-    # ─── Fernet Key ────────────────────────────────────────────
+    # ─── Fernet Key (for encryption) ──────────────────────────
+    # FIXED: If not provided, we auto-generate a valid key.
     FERNET_KEY: Optional[str] = Field(None, description="Fernet key for encryption")
 
     # ─── Debug ──────────────────────────────────────────────────
@@ -59,8 +105,10 @@ class Settings(BaseSettings):
     # ─── YAML Config Path ──────────────────────────────────────
     CONFIG_YAML_PATH: str = Field("config/config.yaml", description="Path to YAML configuration")
 
-    # ─── Load YAML config at runtime ──────────────────────────
+    # ─── Internal cache for YAML config ──────────────────────
     _yaml_config: Optional[AppYamlConfig] = None
+
+    # ─── Validators ────────────────────────────────────────────
 
     @field_validator("JWT_SECRET")
     @classmethod
@@ -72,6 +120,7 @@ class Settings(BaseSettings):
     @field_validator("SYNC_DATABASE_URL", mode="before")
     @classmethod
     def default_sync_url(cls, v: Optional[str], info) -> str:
+        """Derive sync URL from async URL if not set."""
         if v is None:
             async_url = info.data.get("DATABASE_URL", "")
             if async_url.startswith("mssql+aioodbc"):
@@ -82,18 +131,33 @@ class Settings(BaseSettings):
                 return async_url.replace("sqlite+async", "sqlite")
             return async_url
         return v
-    
+
     @field_validator("FERNET_KEY", mode="before")
     @classmethod
     def default_fernet_key(cls, v: Optional[str]) -> str:
-        if v is None:
-            # Generate a random key for development
-            from cryptography.fernet import Fernet
-            return Fernet.generate_key().decode()
-        return v
+        """
+        FIXED: Ensure we have a valid Fernet key.
+        If missing or invalid, generate a new one.
+        """
+        if v is None or v == "":
+            key = Fernet.generate_key()
+            return key.decode()
+        try:
+            # Validate the key is correct base64 and length
+            base64.urlsafe_b64decode(v)
+            return v
+        except Exception:
+            # Invalid key – generate a new one
+            key = Fernet.generate_key()
+            return key.decode()
+
+    # ─── YAML Loading ──────────────────────────────────────────
 
     def load_yaml_config(self) -> AppYamlConfig:
-        """Load and parse the YAML configuration file."""
+        """
+        Load the YAML configuration file.
+        FIXED: Handles missing/invalid YAML gracefully with fallback defaults.
+        """
         if self._yaml_config is not None:
             return self._yaml_config
 
@@ -105,14 +169,21 @@ class Settings(BaseSettings):
         try:
             with open(yaml_path, "r") as f:
                 data = yaml.safe_load(f)
+            if data is None:
+                data = {}
             self._yaml_config = AppYamlConfig(**data)
-            return self._yaml_config
-        except Exception:
+        except Exception as e:
+            print(f"⚠️ Warning: Failed to load YAML config: {e}. Using defaults.")
             self._yaml_config = AppYamlConfig()
-            return self._yaml_config
+
+        return self._yaml_config
 
     @property
     def yaml(self) -> AppYamlConfig:
+        """
+        Access the YAML config as a typed AppYamlConfig object.
+        FIXED: Always returns an AppYamlConfig instance, not a dict.
+        """
         return self.load_yaml_config()
 
     class Config:
@@ -122,7 +193,10 @@ class Settings(BaseSettings):
         extra = "ignore"
 
 
+# ─── Global settings instance ──────────────────────────────────
+
 settings = Settings()
 
+# Ensure SYNC_DATABASE_URL is set
 if not settings.SYNC_DATABASE_URL:
     settings.SYNC_DATABASE_URL = settings.DATABASE_URL.replace("+aioodbc", "+pyodbc")

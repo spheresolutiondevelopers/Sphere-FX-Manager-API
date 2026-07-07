@@ -1,8 +1,9 @@
-"""FastAPI application factory and entry point."""
+"""
+FastAPI application factory and entry point.
+"""
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
@@ -17,23 +18,29 @@ from app.middleware.rate_limit import rate_limit_middleware
 from app.metrics import init_metrics, get_metrics
 from app.services.extraction_grpc import init_extractor_client, close_extractor_client
 from app.services.backtest_grpc import init_backtester_client, close_backtester_client
-from app.routes.v1 import router as v1_router
+from app.routes import router as v1_router
 from app.websocket import backtest_logs_websocket, live_updates_websocket
+from sqlalchemy import text   # <-- ADDED for safe SQL execution
 
-# ──────────────────────────────────────────────────────────────
-#  Logging
-# ──────────────────────────────────────────────────────────────
+
+# ─── Logging ────────────────────────────────────────────────────
+
+log_config = settings.yaml.logging
+if isinstance(log_config, dict):
+    log_level = log_config.get('level', 'INFO')
+    log_format = log_config.get('format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+else:
+    log_level = getattr(log_config, 'level', 'INFO')
+    log_format = getattr(log_config, 'format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 logging.basicConfig(
-    level=getattr(logging, settings.yaml.logging.level.upper()),
-    format=settings.yaml.logging.format,
+    level=getattr(logging, log_level.upper()),
+    format=log_format,
 )
 logger = logging.getLogger(__name__)
 
 
-# ──────────────────────────────────────────────────────────────
-#  Lifespan Manager
-# ──────────────────────────────────────────────────────────────
+# ─── Lifespan Manager ──────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,7 +61,6 @@ async def lifespan(app: FastAPI):
         logger.info(f"Extractor gRPC client connected to {settings.EXTRACTOR_GRPC_ADDR}")
     except Exception as e:
         logger.error(f"Failed to connect to Extractor gRPC: {e}")
-        # Don't fail startup - allow API to start without extractor
 
     try:
         await init_backtester_client()
@@ -66,12 +72,11 @@ async def lifespan(app: FastAPI):
     try:
         from app.db.session import async_engine
         async with async_engine.connect() as conn:
-            await conn.execute("SELECT 1")
+            # FIXED: Use text() for raw SQL
+            await conn.execute(text("SELECT 1"))
         logger.info("Database connection verified")
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
-        # In production, you may want to exit here
-        # raise
 
     logger.info("Sphere FX Manager API startup complete")
     yield

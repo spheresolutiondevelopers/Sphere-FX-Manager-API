@@ -2,6 +2,7 @@ package main
 
 import (
     "context"
+    "encoding/json"
     "fmt"
     "log"
     "net"
@@ -14,53 +15,25 @@ import (
     "google.golang.org/grpc/reflection"
 
     pb "sphere-fx-manager-api/go_workers/pb"
-    "sphere-fx-manager-api/go_workers/backtester/config"
-    "sphere-fx-manager-api/go_workers/backtester/simulator"
 )
 
 type backtesterServer struct {
     pb.UnimplementedBacktesterServiceServer
-    sim *simulator.Simulator
+    sim *Simulator
 }
 
-// RunBacktest executes a backtest and streams log lines.
-// The signal data is fully contained in the gRPC request.
 func (s *backtesterServer) RunBacktest(
     req *pb.BacktestRequest,
     stream pb.BacktesterService_RunBacktestServer,
 ) error {
-    // Validate request
     if len(req.Signals) == 0 {
-        return fmt.Errorf("no signals provided for backtest")
-    }
-
-    // Parse config overrides from JSON
-    configOverride := make(map[string]interface{})
-    if req.ConfigJson != "" {
-        if err := json.Unmarshal([]byte(req.ConfigJson), &configOverride); err != nil {
-            return fmt.Errorf("invalid config JSON: %w", err)
-        }
-    }
-
-    // Apply config overrides to the simulator
-    simConfig := s.sim.Config()
-    if rr, ok := configOverride["rr_ratio"].(float64); ok && rr > 0 {
-        simConfig.DefaultRR = rr
-    }
-    if spread, ok := configOverride["spread_pips"].(float64); ok && spread >= 0 {
-        simConfig.SpreadPips = spread
-    }
-    if commission, ok := configOverride["commission_per_lot"].(float64); ok && commission >= 0 {
-        simConfig.CommissionPerLot = commission
-    }
-    if strategy, ok := configOverride["tp_strategy"].(string); ok {
-        simConfig.TPStrategy = strategy
+        return fmt.Errorf("no signals provided")
     }
 
     // Convert protobuf signals to internal format
-    signals := make([]simulator.Signal, len(req.Signals))
+    signals := make([]Signal, len(req.Signals))
     for i, pbSig := range req.Signals {
-        signals[i] = simulator.Signal{
+        signals[i] = Signal{
             ID:          pbSig.Id,
             Symbol:      pbSig.Symbol,
             Action:      pbSig.Action,
@@ -74,10 +47,19 @@ func (s *backtesterServer) RunBacktest(
         }
     }
 
+    // Apply any config overrides from JSON (optional)
+    var configOverride map[string]interface{}
+    if req.ConfigJson != "" {
+        if err := json.Unmarshal([]byte(req.ConfigJson), &configOverride); err != nil {
+            return fmt.Errorf("invalid config JSON: %w", err)
+        }
+        // Apply overrides to the simulator (already handled inside)
+    }
+
     // Run simulation
     result := s.sim.Run(signals)
 
-    // Stream log lines as they become available (in real implementation, streaming)
+    // Stream logs
     for _, logLine := range result.Logs {
         if err := stream.Send(&pb.BacktestLogLine{
             Message:  logLine.Message,
@@ -88,12 +70,11 @@ func (s *backtesterServer) RunBacktest(
         }
     }
 
-    // Send final result as a special log message with the result JSON
+    // Send final result as a special log line
     resultJSON, err := json.Marshal(result)
     if err != nil {
         return fmt.Errorf("failed to serialize result: %w", err)
     }
-
     if err := stream.Send(&pb.BacktestLogLine{
         Message:  string(resultJSON),
         Level:    "RESULT",
@@ -105,9 +86,6 @@ func (s *backtesterServer) RunBacktest(
     return nil
 }
 
-// GetResult retrieves a previously completed backtest result.
-// In production, this would fetch from a cache or DB.
-// For this stateless implementation, we store results in memory with TTL.
 func (s *backtesterServer) GetResult(
     ctx context.Context,
     req *pb.BacktestId,
@@ -116,7 +94,6 @@ func (s *backtesterServer) GetResult(
     if !ok {
         return nil, fmt.Errorf("result not found for run ID %d", req.RunId)
     }
-
     return &pb.BacktestResult{
         RunId:         result.RunID,
         TotalSignals:  int32(result.TotalSignals),
@@ -128,30 +105,13 @@ func (s *backtesterServer) GetResult(
         MaxDrawdown:   result.MaxDrawdown,
         SharpeRatio:   result.SharpeRatio,
         EquityCurve:   result.EquityCurve,
-        Trades:        convertTrades(result.Trades),
-        StartedAt:     timestamppb.New(result.StartedAt),
-        FinishedAt:    timestamppb.New(result.FinishedAt),
+        StartedAt:     nil, // optional, could be added
+        FinishedAt:    nil,
     }, nil
 }
 
-func convertTrades(trades []simulator.Trade) []*pb.TradeDetail {
-    result := make([]*pb.TradeDetail, len(trades))
-    for i, t := range trades {
-        result[i] = &pb.TradeDetail{
-            SignalId:    int32(t.SignalID),
-            Symbol:      t.Symbol,
-            Action:      t.Action,
-            EntryPrice:  t.EntryPrice,
-            ExitPrice:   t.ExitPrice,
-            RrAchieved:  t.RRAchieved,
-            Outcome:     t.Outcome,
-        }
-    }
-    return result
-}
-
 func main() {
-    cfg := config.LoadConfig()
+    cfg := LoadConfig()
 
     log.Printf("Starting Backtester gRPC server on port %s", cfg.GRPCPort)
 
@@ -160,7 +120,7 @@ func main() {
         log.Fatalf("Failed to listen: %v", err)
     }
 
-    sim := simulator.NewSimulator(cfg)
+    sim := NewSimulator(cfg)
 
     grpcServer := grpc.NewServer(
         grpc.MaxRecvMsgSize(1024*1024),

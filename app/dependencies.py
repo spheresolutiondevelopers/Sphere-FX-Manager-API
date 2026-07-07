@@ -1,10 +1,11 @@
 """FastAPI dependency injection."""
 
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Callable
 from fastapi import Request, HTTPException, status, Depends
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError
+from functools import partial
 
 from app.db.session import get_async_db
 from app.services.auth import decode_access_token
@@ -112,7 +113,6 @@ async def require_valid_license(
             payload = validate_license_key(settings.LICENSE_KEY)
             if payload and payload.get("user_id") == current_user.id:
                 # Create a license record if it doesn't exist
-                # This is a one-time activation flow
                 from datetime import timedelta
                 expires_at = datetime.fromisoformat(payload.get("expires_at"))
                 new_license = License(
@@ -135,17 +135,23 @@ async def require_valid_license(
     return license_record
 
 
-async def require_feature(
-    feature_name: str,
-    license_record: License = Depends(require_valid_license),
-) -> bool:
+# ──────────────────────────────────────────────────────────────
+#  Feature Check Dependency Factory
+# ──────────────────────────────────────────────────────────────
+
+def require_feature(feature_name: str) -> Callable:
     """
-    Dependency that checks if a specific feature is enabled in the license.
+    Returns a dependency that checks if a specific feature is enabled in the license.
+    Usage: `Depends(require_feature("live_trading"))`
     """
-    features = license_record.features or {}
-    if not features.get(feature_name, False):
-        raise LicenseError(f"Feature '{feature_name}' is not enabled in your license")
-    return True
+    async def dependency(
+        license_record: License = Depends(require_valid_license),
+    ) -> bool:
+        features = license_record.features or {}
+        if not features.get(feature_name, False):
+            raise LicenseError(f"Feature '{feature_name}' is not enabled in your license")
+        return True
+    return dependency
 
 
 # ──────────────────────────────────────────────────────────────

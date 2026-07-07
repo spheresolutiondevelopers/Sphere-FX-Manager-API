@@ -1,4 +1,4 @@
-package position_mgr
+package main
 
 import (
 	"database/sql"
