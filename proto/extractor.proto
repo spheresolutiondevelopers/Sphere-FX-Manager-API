@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package extractor;
 
+option go_package = "sphere-fx-manager-api/go_workers/pb;pb";
+
 service ExtractorService {
     rpc Extract(ExtractRequest) returns (ExtractResponse);
 }

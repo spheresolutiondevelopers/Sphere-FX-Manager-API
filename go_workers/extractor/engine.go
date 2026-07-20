@@ -2,7 +2,7 @@ package main
 
 import (
     "fmt"
-    "log"
+    //"log"
     pb "sphere-fx-manager-api/go_workers/pb"
 )
 

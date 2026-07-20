@@ -2,7 +2,7 @@ package main
 
 import (
     "math"
-    "sort"
+    //"sort"
 )
 
 func CalculateProfitFactor(trades []Trade) float64 {

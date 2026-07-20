@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package live;
 
+option go_package = "sphere-fx-manager-api/go_workers/pb;pb";
+
 service LiveService {
     rpc ExecuteOrder(ExecuteOrderRequest) returns (OrderResult);
 }
@@ -13,11 +15,11 @@ message ExecuteOrderRequest {
     double lot_size = 4;
     double entry_price = 5;
     double stop_loss = 6;
-    repeated TakeProfitLevel take_profit = 7;
+    repeated LiveTakeProfitLevel take_profit = 7;
     int32 account_id = 8;
 }
 
-message TakeProfitLevel {
+message LiveTakeProfitLevel {
     int32 level = 1;
     double price = 2;
 }

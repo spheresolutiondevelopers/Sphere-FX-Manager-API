@@ -1,55 +1,53 @@
 package main
 
 import (
-	"context"
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
-	"sphere-fx-manager-api/go_workers/live_worker/config"
-	"sphere-fx-manager-api/go_workers/live_worker/processor"
+    "context"
+    "log"
+    "os"
+    "os/signal"
+    "syscall"
+    "time"
 )
 
 func main() {
-	cfg := config.LoadConfig()
+    cfg := LoadConfig()
 
-	log.Printf("Starting Live Worker (poll interval: %ds)", cfg.PollIntervalSeconds)
+    // Initialize database
+    if err := InitDB(cfg); err != nil {
+        log.Fatalf("Failed to initialize database: %v", err)
+    }
 
-	// Create processor
-	proc := processor.NewProcessor(cfg)
+    log.Printf("Starting Live Worker (poll interval: %ds)", cfg.PollIntervalSeconds)
 
-	// Context for graceful shutdown
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+    proc := NewProcessor(cfg)
 
-	// Signal handling
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+    ctx, cancel := context.WithCancel(context.Background())
+    defer cancel()
 
-	go func() {
-		<-sigCh
-		log.Println("Shutdown signal received, stopping live worker...")
-		cancel()
-	}()
+    sigCh := make(chan os.Signal, 1)
+    signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
-	// Main polling loop
-	ticker := time.NewTicker(time.Duration(cfg.PollIntervalSeconds) * time.Second)
-	defer ticker.Stop()
+    go func() {
+        <-sigCh
+        log.Println("Shutdown signal received, stopping live worker...")
+        cancel()
+    }()
 
-	log.Println("Live worker started, polling for jobs...")
+    ticker := time.NewTicker(time.Duration(cfg.PollIntervalSeconds) * time.Second)
+    defer ticker.Stop()
 
-	for {
-		select {
-		case <-ctx.Done():
-			log.Println("Live worker shutting down gracefully")
-			proc.Shutdown()
-			return
-		case <-ticker.C:
-			if err := proc.ProcessNextJob(ctx); err != nil {
-				log.Printf("Error processing job: %v", err)
-			}
-		}
-	}
+    log.Println("Live worker started, polling for jobs...")
+
+    for {
+        select {
+        case <-ctx.Done():
+            log.Println("Live worker shutting down gracefully")
+            proc.Shutdown()
+            return
+        case <-ticker.C:
+            if err := proc.ProcessNextJob(ctx); err != nil {
+                log.Printf("Error processing job: %v", err)
+            }
+        }
+    }
 }

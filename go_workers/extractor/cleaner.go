@@ -6,7 +6,7 @@ import (
     "path/filepath"
     "regexp"
     "strings"
-    "unicode"
+    //"unicode"
 )
 
 type Cleaner struct {
