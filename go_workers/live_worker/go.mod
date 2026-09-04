@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/denisenkom/go-mssqldb v0.12.3
+	github.com/joho/godotenv v1.5.1
 	github.com/spf13/viper v1.19.0
 )
 

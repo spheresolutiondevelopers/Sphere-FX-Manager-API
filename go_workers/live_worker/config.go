@@ -5,42 +5,33 @@ import (
     "os"
     "time"
 
+    "github.com/joho/godotenv"
     "github.com/spf13/viper"
 )
 
 type Config struct {
-    // Database connection
-    DBDriver          string
-    DBHost            string
-    DBPort            int
-    DBUser            string
-    DBPassword        string
-    DBName            string
-    DBURL             string // ADD THIS FIELD
-    DBMaxOpenConns    int
-    DBMaxIdleConns    int
-    DBConnMaxLifetime time.Duration
-
-    // Queue polling
+    DBURL          string
+    MT5BridgeURL   string
     PollIntervalSeconds int
     MaxClaimAttempts    int
-
-    // MT5 Bridge
-    MT5BridgeURL string
-    MT5Timeout   time.Duration
-
-    // Risk defaults
+    MT5Timeout          time.Duration
+    DBMaxOpenConns      int
+    DBMaxIdleConns      int
+    DBConnMaxLifetime   time.Duration
     DefaultMaxLot           float64
     DefaultMinLot           float64
     DefaultMaxDailyDrawdown float64
     DefaultMinRR            float64
     DefaultMaxPositions     int
-
-    // Logging
-    LogLevel string
+    LogLevel                string
 }
 
 func LoadConfig() *Config {
+    // Load .env file (same as FastAPI uses)
+    if err := godotenv.Load(); err != nil {
+        log.Println("Warning: .env file not found, using environment variables")
+    }
+
     viper.SetConfigName("config")
     viper.SetConfigType("yaml")
     viper.AddConfigPath("/app/config")
@@ -50,6 +41,7 @@ func LoadConfig() *Config {
         log.Printf("Warning: config file not found, using defaults: %v", err)
     }
 
+    // Defaults
     viper.SetDefault("live_worker.poll_interval_seconds", 2)
     viper.SetDefault("live_worker.max_claim_attempts", 3)
     viper.SetDefault("live_worker.mt5_timeout_seconds", 10)
@@ -63,23 +55,12 @@ func LoadConfig() *Config {
     viper.SetDefault("risk_limits.min_rr_ratio", 1.5)
     viper.SetDefault("risk_limits.max_positions", 10)
 
-    // Override from env
-    mt5URL := os.Getenv("MT5_BRIDGE_URL")
-    if mt5URL != "" {
-        viper.Set("live_worker.mt5_bridge_url", mt5URL)
-    }
-
-    // Get DB URL from environment
-    dbURL := os.Getenv("DATABASE_URL")
-    if dbURL == "" {
-        dbURL = os.Getenv("SYNC_DATABASE_URL")
-    }
-
     cfg := &Config{
-        DBURL:                  dbURL, // SET DBURL
+        // Read from environment first (via .env), fallback to config
+        DBURL:                  getEnv("DATABASE_URL", ""),
+        MT5BridgeURL:           getEnv("MT5_BRIDGE_URL", viper.GetString("live_worker.mt5_bridge_url")),
         PollIntervalSeconds:    viper.GetInt("live_worker.poll_interval_seconds"),
         MaxClaimAttempts:       viper.GetInt("live_worker.max_claim_attempts"),
-        MT5BridgeURL:           viper.GetString("live_worker.mt5_bridge_url"),
         MT5Timeout:             time.Duration(viper.GetInt("live_worker.mt5_timeout_seconds")) * time.Second,
         DBMaxOpenConns:         viper.GetInt("live_worker.max_open_conns"),
         DBMaxIdleConns:         viper.GetInt("live_worker.max_idle_conns"),
@@ -92,9 +73,19 @@ func LoadConfig() *Config {
         LogLevel:               viper.GetString("live_worker.log_level"),
     }
 
+    if cfg.DBURL == "" {
+        log.Fatal("DATABASE_URL must be set in .env")
+    }
     if cfg.MT5BridgeURL == "" {
-        log.Fatal("MT5_BRIDGE_URL must be set (env or config)")
+        log.Fatal("MT5_BRIDGE_URL must be set in .env or config")
     }
 
     return cfg
+}
+
+func getEnv(key, fallback string) string {
+    if value, exists := os.LookupEnv(key); exists && value != "" {
+        return value
+    }
+    return fallback
 }
